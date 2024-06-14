@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 import Stripe from 'stripe';
 import express from 'express';
+import path from 'path';
 import dbConnect from '../config/dbConnect.js';
 import {
   globalErrorHandler,
@@ -40,9 +41,7 @@ app.post(
 
     try {
       event = stripe.webhooks.constructEvent(request.body, sig, endpointSecret);
-      console.log(event);
     } catch (err) {
-      console.log('err', err.message);
       response.status(400).send(`Webhook Error: ${err.message}`);
       return;
     }
@@ -69,7 +68,6 @@ app.post(
           new: true,
         }
       );
-      console.log(order);
     } else {
       return;
     }
@@ -92,7 +90,14 @@ app.post(
 //pass incoming data
 app.use(express.json());
 
+//server static file
+app.use(express.static('public'));
+
 //routes
+//Home route
+app.get('/', (req, res) => {
+  res.sendFile(path.join('public', 'index.html'));
+});
 app.use('/api/v1/users/', userRoutes);
 app.use('/api/v1/products/', productRoutes);
 app.use('/api/v1/categories/', categoryRoutes);
